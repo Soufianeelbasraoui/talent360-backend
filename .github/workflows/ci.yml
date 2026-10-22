@@ -1,0 +1,39 @@
+name: Backend CI
+
+on:
+  push:
+    branches: [main, master, develop]
+  pull_request:
+    branches: [main, master, develop]
+
+jobs:
+  build-and-test:
+    name: Build & Test (Java 21)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21 (Eclipse Temurin)
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Grant execute permission for mvnw
+        run: chmod +x mvnw
+
+      - name: Run unit and integration tests
+        run: ./mvnw clean test --no-transfer-progress
+        env:
+          SPRING_PROFILES_ACTIVE: test
+          SPRING_AI_OPENAI_API_KEY: test-mock-key
+          JWT_SECRET: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+
+      - name: Package Spring Boot executable JAR
+        run: ./mvnw package -DskipTests --no-transfer-progress
+
+      - name: Verify Docker image build
+        run: docker build -t talent360-backend:latest .

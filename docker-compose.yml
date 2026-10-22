@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: talent360-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-talent360}
+      MYSQL_USER: ${MYSQL_USER:-talent_user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-talent_pass}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-rootpassword}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - talent360-network
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: talent360-backend
+    restart: on-failure
+    depends_on:
+      mysql:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/${MYSQL_DATABASE:-talent360}?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER:-talent_user}
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD:-talent_pass}
+      JWT_SECRET: ${JWT_SECRET:-404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-mock-openai-key}
+      UPLOAD_DIR: /app/uploads/cvs
+    ports:
+      - "8080:8080"
+    volumes:
+      - cv_uploads:/app/uploads/cvs
+    networks:
+      - talent360-network
+
+volumes:
+  mysql_data:
+  cv_uploads:
+
+networks:
+  talent360-network:
+    driver: bridge

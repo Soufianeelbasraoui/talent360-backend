@@ -3,7 +3,7 @@ WORKDIR /workspace
 
 COPY .mvn .mvn
 COPY mvnw pom.xml ./
-RUN chmod +x mvnw
+RUN sed -i 's/\r$//' mvnw && chmod +x mvnw
 RUN ./mvnw dependency:go-offline -B
 
 COPY src ./src
@@ -22,4 +22,4 @@ COPY --from=builder /workspace/target/*.jar app.jar
 
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-Djava.security.egd=file:/dev/./urandom", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-XX:+UseContainerSupport", "-XX:MaxRAMPercentage=75.0", "-Djava.security.egd=file:/dev/./urandom", "-jar", "app.jar"]

@@ -15,6 +15,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -26,6 +28,13 @@ import org.springframework.web.multipart.MultipartFile;
 public class CandidateController {
 
     private final CandidateService candidateService;
+
+    @Operation(summary = "Get current candidate profile", description = "Candidate only - returns authenticated candidate's profile")
+    @PreAuthorize("hasRole('CANDIDATE')")
+    @GetMapping("/me")
+    public ResponseEntity<CandidateResponse> getMyProfile(@AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(candidateService.getCandidateByEmail(userDetails.getUsername()));
+    }
 
     @Operation(summary = "Get candidate profile by ID", description = "Candidate owner, Recruiter, or Admin only")
     @PreAuthorize("@ownershipSecurity.isCandidateOwner(#id, authentication) or hasAnyRole('RECRUITER', 'ADMIN')")

@@ -35,7 +35,7 @@ public class MatchingService {
     private final UserRepository userRepository;
     private final ObjectMapper objectMapper;
 
-    @Transactional(readOnly = true)
+    @Transactional
     public List<JobMatchResultDto> matchJobsForCandidate(String candidateEmail) {
         Candidate candidate = candidateRepository.findByUserEmail(candidateEmail)
                 .orElseThrow(() -> new EntityNotFoundException("Candidate profile not found for email: " + candidateEmail));
@@ -62,7 +62,7 @@ public class MatchingService {
         return results;
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public List<CandidateMatchResultDto> matchCandidatesForJob(Long jobId, String recruiterEmail) {
         JobOffer job = jobOfferRepository.findById(jobId)
                 .orElseThrow(() -> new EntityNotFoundException("Job offer not found with id: " + jobId));
@@ -127,11 +127,14 @@ public class MatchingService {
             skillsScore = ratio * 60.0;
         }
 
-        int requiredYears = switch (job.getExperienceLevel()) {
-            case JUNIOR -> 1;
-            case MID -> 3;
-            case SENIOR -> 5;
-        };
+        int requiredYears = 1;
+        if (job.getExperienceLevel() != null) {
+            requiredYears = switch (job.getExperienceLevel()) {
+                case JUNIOR -> 1;
+                case MID -> 3;
+                case SENIOR -> 5;
+            };
+        }
         int candYears = candidate.getExperienceYears() != null ? candidate.getExperienceYears() : 0;
         boolean experienceMatch = candYears >= requiredYears;
         double experienceScore;

@@ -69,6 +69,13 @@ public class CandidateService {
         return candidateMapper.toResponse(candidate);
     }
 
+    @Transactional(readOnly = true)
+    public CandidateResponse getCandidateByEmail(String email) {
+        Candidate candidate = candidateRepository.findByUserEmail(email)
+                .orElseThrow(() -> new EntityNotFoundException("Candidate profile not found for email: " + email));
+        return candidateMapper.toResponse(candidate);
+    }
+
     @Transactional
     public CandidateResponse updateCandidate(Long id, CandidateUpdateRequest request) {
         Candidate candidate = candidateRepository.findById(id)

@@ -56,8 +56,11 @@ public class CvAnalysisService {
     public CvAnalysisResponse analyzeCv(Long candidateDocumentId, String userEmail, Boolean forceReanalyze) {
         var existingAnalysis = cvAnalysisRepository.findByCandidateDocumentId(candidateDocumentId);
         if (existingAnalysis.isPresent() && !Boolean.TRUE.equals(forceReanalyze)) {
-            log.info("Returning cached CV analysis for document ID {}", candidateDocumentId);
-            return mapToResponse(existingAnalysis.get());
+            CVAnalysis cached = existingAnalysis.get();
+            if (cached.getSummary() != null && cached.getEducation() != null && !cached.getEducation().contains("Fallback")) {
+                log.info("Returning cached CV analysis for document ID {}", candidateDocumentId);
+                return mapToResponse(cached);
+            }
         }
 
         CandidateDocument document = candidateDocumentRepository.findById(candidateDocumentId)

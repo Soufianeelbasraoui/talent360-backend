@@ -53,6 +53,38 @@ public class CandidateController {
         return ResponseEntity.ok(candidateService.updateCandidate(id, request));
     }
 
+    @Operation(summary = "Upload current candidate CV document", description = "Multipart file upload for logged-in candidate")
+    @PreAuthorize("hasRole('CANDIDATE')")
+    @PostMapping(value = "/me/cv", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<CandidateDocumentResponse> uploadMyCv(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam("file") MultipartFile file
+    ) {
+        CandidateResponse candidate = candidateService.getCandidateByEmail(userDetails.getUsername());
+        return ResponseEntity.status(HttpStatus.CREATED).body(candidateService.uploadCv(candidate.getId(), file));
+    }
+
+    @Operation(summary = "Download current candidate CV document", description = "Logged-in candidate only")
+    @PreAuthorize("hasRole('CANDIDATE')")
+    @GetMapping("/me/cv")
+    public ResponseEntity<Resource> downloadMyCv(@AuthenticationPrincipal UserDetails userDetails) {
+        CandidateResponse candidate = candidateService.getCandidateByEmail(userDetails.getUsername());
+        Resource resource = candidateService.loadCvResource(candidate.getId());
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
+                .body(resource);
+    }
+
+    @Operation(summary = "Delete current candidate CV document", description = "Logged-in candidate only")
+    @PreAuthorize("hasRole('CANDIDATE')")
+    @DeleteMapping("/me/cv")
+    public ResponseEntity<Void> deleteMyCv(@AuthenticationPrincipal UserDetails userDetails) {
+        CandidateResponse candidate = candidateService.getCandidateByEmail(userDetails.getUsername());
+        candidateService.deleteCv(candidate.getId());
+        return ResponseEntity.noContent().build();
+    }
+
     @Operation(summary = "Upload candidate CV document (PDF/DOCX)", description = "Multipart file upload")
     @PreAuthorize("@ownershipSecurity.isCandidateOwner(#id, authentication) or hasRole('ADMIN')")
     @PostMapping(value = "/{id}/cv", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

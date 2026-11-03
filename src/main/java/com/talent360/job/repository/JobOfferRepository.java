@@ -38,4 +38,6 @@ public interface JobOfferRepository extends JpaRepository<JobOffer, Long>, JpaSp
     );
 
     List<JobOffer> findByStatus(JobStatus status);
+
+    long countByStatus(JobStatus status);
 }

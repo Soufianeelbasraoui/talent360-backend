@@ -20,4 +20,8 @@ public interface ApplicationRepository extends JpaRepository<Application, Long> 
     boolean existsByCandidateIdAndJobOfferId(Long candidateId, Long jobOfferId);
 
     Optional<Application> findByCandidateIdAndJobOfferId(Long candidateId, Long jobOfferId);
+
+    long countByStatus(com.talent360.common.enums.ApplicationStatus status);
+
+    java.util.List<Application> findTop10ByOrderByAppliedAtDesc();
 }

@@ -18,3 +18,4 @@ public class RecentActivityDto {
     private String time;
     private String status;
 }
+

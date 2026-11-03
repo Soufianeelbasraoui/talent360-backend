@@ -13,3 +13,4 @@ public class JobApplicationStatDto {
     private String job;
     private long applications;
 }
+

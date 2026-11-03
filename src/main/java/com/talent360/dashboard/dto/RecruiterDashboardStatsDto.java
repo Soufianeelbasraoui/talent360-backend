@@ -21,3 +21,4 @@ public class RecruiterDashboardStatsDto {
     private List<JobApplicationStatDto> chartData;
     private List<RecentActivityDto> recentActivities;
 }
+

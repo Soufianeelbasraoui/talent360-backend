@@ -20,3 +20,4 @@ public class AdminDashboardStatsDto {
     private long totalDepartments;
     private List<Map<String, Object>> growthData;
 }
+

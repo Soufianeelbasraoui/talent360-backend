@@ -9,8 +9,13 @@ import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
+import org.mapstruct.NullValuePropertyMappingStrategy;
 
-@Mapper(componentModel = "spring", builder = @Builder(disableBuilder = true))
+@Mapper(
+        componentModel = "spring",
+        builder = @Builder(disableBuilder = true),
+        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE
+)
 public interface CandidateMapper {
 
     @Mapping(target = "userId", source = "user.id")

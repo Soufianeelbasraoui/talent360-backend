@@ -36,6 +36,17 @@ public class CandidateController {
         return ResponseEntity.ok(candidateService.getCandidateByEmail(userDetails.getUsername()));
     }
 
+    @Operation(summary = "Update current candidate profile", description = "Logged-in candidate only")
+    @PreAuthorize("hasRole('CANDIDATE')")
+    @PutMapping("/me")
+    public ResponseEntity<CandidateResponse> updateMyProfile(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestBody CandidateUpdateRequest request
+    ) {
+        CandidateResponse candidate = candidateService.getCandidateByEmail(userDetails.getUsername());
+        return ResponseEntity.ok(candidateService.updateCandidate(candidate.getId(), request));
+    }
+
     @Operation(summary = "Get candidate profile by ID", description = "Candidate owner, Recruiter, or Admin only")
     @PreAuthorize("@ownershipSecurity.isCandidateOwner(#id, authentication) or hasAnyRole('RECRUITER', 'ADMIN')")
     @GetMapping("/{id}")

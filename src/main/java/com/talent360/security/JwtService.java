@@ -68,6 +68,15 @@ public class JwtService {
         }
     }
 
+    public boolean isAccessToken(String token) {
+        try {
+            Claims claims = extractAllClaims(token);
+            return "ACCESS".equals(claims.get("type"));
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     private boolean isTokenExpired(String token) {
         return extractExpiration(token).before(new Date());
     }

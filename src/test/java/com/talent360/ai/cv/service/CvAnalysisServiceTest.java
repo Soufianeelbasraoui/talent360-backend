@@ -74,6 +74,7 @@ class CvAnalysisServiceTest {
         CVAnalysis cached = CVAnalysis.builder()
                 .id(1L)
                 .candidateDocument(doc)
+                .summary("Experienced software engineer")
                 .extractedSkillsJson("[\"Java\", \"Spring\"]")
                 .experienceYears(4)
                 .education("BS Computer Science")

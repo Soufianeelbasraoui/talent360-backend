@@ -1,5 +1,6 @@
 package com.talent360.user.service;
 
+import com.talent360.auth.repository.RefreshTokenRepository;
 import com.talent360.common.dto.PageResponse;
 import com.talent360.user.dto.UpdateUserRequest;
 import com.talent360.user.dto.UserResponse;
@@ -15,12 +16,15 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class UserService {
 
     private final UserRepository userRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
 
@@ -35,7 +39,9 @@ public class UserService {
         User user = getUserByEmail(email);
         if (request.getNewPassword() != null && !request.getNewPassword().isBlank()) {
             user.setPassword(passwordEncoder.encode(request.getNewPassword()));
-            log.info("Password updated for user: {}", email);
+            // Invalidate all existing refresh tokens after password change
+            refreshTokenRepository.revokeAllForUser(user.getId(), LocalDateTime.now());
+            log.info("Password updated and sessions revoked for user: {}", email);
         }
         User updated = userRepository.save(user);
         return userMapper.toResponse(updated);
@@ -52,6 +58,11 @@ public class UserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + id));
         user.setActive(active);
+        if (!active) {
+            // Revoke all active refresh tokens when account is disabled
+            refreshTokenRepository.revokeAllForUser(id, LocalDateTime.now());
+            log.info("Account disabled and all active sessions revoked for user ID: {}", id);
+        }
         log.info("Updated user status for ID {} to active={}", id, active);
         return userMapper.toResponse(userRepository.save(user));
     }

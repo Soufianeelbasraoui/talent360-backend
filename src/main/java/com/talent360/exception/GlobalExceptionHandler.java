@@ -2,14 +2,19 @@ package com.talent360.exception;
 
 import com.talent360.auth.exception.EmailAlreadyExistsException;
 import com.talent360.auth.exception.InvalidTokenException;
+import com.talent360.security.ratelimit.RateLimitExceededException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.AccountStatusException;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -76,15 +81,45 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
     }
 
-    @ExceptionHandler({BadCredentialsException.class, InvalidTokenException.class})
-    public ResponseEntity<ErrorResponse> handleAuthenticationException(
-            Exception ex,
+    @ExceptionHandler(RateLimitExceededException.class)
+    public ResponseEntity<ErrorResponse> handleRateLimitExceededException(
+            RateLimitExceededException ex,
             HttpServletRequest request
     ) {
         ErrorResponse response = ErrorResponse.builder()
                 .timestamp(LocalDateTime.now())
+                .status(HttpStatus.TOO_MANY_REQUESTS.value())
+                .message(ex.getMessage())
+                .path(request.getRequestURI())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .header(HttpHeaders.RETRY_AFTER, String.valueOf(ex.getRetryAfterSeconds()))
+                .body(response);
+    }
+
+    @ExceptionHandler({
+            BadCredentialsException.class,
+            DisabledException.class,
+            LockedException.class,
+            AccountStatusException.class,
+            InvalidTokenException.class
+    })
+    public ResponseEntity<ErrorResponse> handleAuthenticationException(
+            Exception ex,
+            HttpServletRequest request
+    ) {
+        String msg = "Invalid email or password";
+        if (ex instanceof DisabledException || ex instanceof LockedException || ex instanceof AccountStatusException) {
+            msg = "Account is disabled or suspended";
+        } else if (ex instanceof InvalidTokenException) {
+            msg = ex.getMessage();
+        }
+
+        ErrorResponse response = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
                 .status(HttpStatus.UNAUTHORIZED.value())
-                .message(ex.getMessage() != null ? ex.getMessage() : "Invalid authentication credentials")
+                .message(msg)
                 .path(request.getRequestURI())
                 .build();
 

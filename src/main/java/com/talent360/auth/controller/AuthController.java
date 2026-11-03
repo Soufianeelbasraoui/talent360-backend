@@ -87,12 +87,15 @@ public class AuthController {
                 .body(response);
     }
 
-    @Operation(summary = "Logout user", description = "Clears the HttpOnly refresh token cookie")
+    @Operation(summary = "Logout user", description = "Revokes server-side refresh token and clears the HttpOnly cookie")
     @PostMapping("/logout")
-    public ResponseEntity<Map<String, String>> logout() {
+    public ResponseEntity<Map<String, String>> logout(
+            @CookieValue(name = "${app.jwt.cookie.name:refreshToken}", required = false) String cookieRefreshToken
+    ) {
+        authService.logout(cookieRefreshToken);
         ResponseCookie cleanCookie = authCookieService.createCleanRefreshTokenCookie();
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cleanCookie.toString())
-                .body(Map.of("message", "Successfully logged out. Refresh token cleared."));
+                .body(Map.of("message", "Successfully logged out. Refresh token cleared and session revoked."));
     }
 }

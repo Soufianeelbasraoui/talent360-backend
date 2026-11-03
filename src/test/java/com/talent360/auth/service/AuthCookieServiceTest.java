@@ -48,3 +48,4 @@ class AuthCookieServiceTest {
         assertThat(cookie.getMaxAge().getSeconds()).isEqualTo(0L);
     }
 }
+

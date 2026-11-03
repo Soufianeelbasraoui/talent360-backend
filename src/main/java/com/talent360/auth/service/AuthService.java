@@ -103,7 +103,18 @@ public class AuthService {
 
     @Transactional(readOnly = true)
     public AuthResponse refreshToken(RefreshTokenRequest request) {
-        String token = request.getRefreshToken();
+        if (request == null || request.getRefreshToken() == null) {
+            throw new InvalidTokenException("Refresh token is required");
+        }
+        return refreshToken(request.getRefreshToken());
+    }
+
+    @Transactional(readOnly = true)
+    public AuthResponse refreshToken(String token) {
+        if (token == null || token.trim().isEmpty()) {
+            throw new InvalidTokenException("Refresh token is required");
+        }
+
         if (!jwtService.isRefreshToken(token)) {
             throw new InvalidTokenException("Invalid refresh token");
         }
@@ -117,10 +128,13 @@ public class AuthService {
         }
 
         String newAccessToken = jwtService.generateAccessToken(user);
+        String newRefreshToken = jwtService.generateRefreshToken(user);
+
+        log.debug("Successfully refreshed and rotated tokens for user: {}", email);
 
         return AuthResponse.builder()
                 .accessToken(newAccessToken)
-                .refreshToken(token)
+                .refreshToken(newRefreshToken)
                 .tokenType("Bearer")
                 .expiresInMs(accessTokenExpiration)
                 .userId(user.getId())

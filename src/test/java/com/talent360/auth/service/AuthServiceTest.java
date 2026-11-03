@@ -135,4 +135,31 @@ class AuthServiceTest {
         assertThat(response.getRefreshToken()).isEqualTo("refresh-token-xyz");
         assertThat(response.getRole()).isEqualTo(Role.RECRUITER);
     }
+
+    @Test
+    @DisplayName("Should successfully rotate refresh token and issue new access token")
+    void refreshTokenRotationSuccess() {
+        String oldRefreshToken = "valid-old-refresh-token";
+        User user = User.builder()
+                .id(20L)
+                .email("candidate@example.com")
+                .role(Role.CANDIDATE)
+                .active(true)
+                .build();
+
+        when(jwtService.isRefreshToken(oldRefreshToken)).thenReturn(true);
+        when(jwtService.extractUsername(oldRefreshToken)).thenReturn("candidate@example.com");
+        when(userRepository.findByEmail("candidate@example.com")).thenReturn(Optional.of(user));
+        when(jwtService.isTokenValid(oldRefreshToken, user)).thenReturn(true);
+        when(jwtService.generateAccessToken(user)).thenReturn("new-access-token");
+        when(jwtService.generateRefreshToken(user)).thenReturn("new-rotated-refresh-token");
+
+        AuthResponse response = authService.refreshToken(oldRefreshToken);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getAccessToken()).isEqualTo("new-access-token");
+        assertThat(response.getRefreshToken()).isEqualTo("new-rotated-refresh-token");
+        assertThat(response.getEmail()).isEqualTo("candidate@example.com");
+        assertThat(response.getRole()).isEqualTo(Role.CANDIDATE);
+    }
 }

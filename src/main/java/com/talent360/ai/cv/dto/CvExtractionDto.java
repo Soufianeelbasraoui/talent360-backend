@@ -7,6 +7,10 @@ public record CvExtractionDto(
         int experienceYears,
         String education,
         List<String> languages,
-        List<String> certifications
+        List<String> certifications,
+        int cvScore,
+        String summary,
+        List<String> strengths,
+        List<String> improvements
 ) {
 }

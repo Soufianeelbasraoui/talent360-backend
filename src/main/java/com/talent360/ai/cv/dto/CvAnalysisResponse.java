@@ -20,5 +20,9 @@ public class CvAnalysisResponse {
     private String education;
     private List<String> languages;
     private List<String> certifications;
+    private Integer cvScore;
+    private String summary;
+    private List<String> strengths;
+    private List<String> improvements;
     private LocalDateTime analyzedAt;
 }

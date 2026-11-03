@@ -38,6 +38,19 @@ public class CVAnalysis {
     @Column(name = "certifications_json", columnDefinition = "TEXT")
     private String certificationsJson;
 
+    @Column(name = "cv_score")
+    @Builder.Default
+    private Integer cvScore = 75;
+
+    @Column(columnDefinition = "TEXT")
+    private String summary;
+
+    @Column(name = "strengths_json", columnDefinition = "TEXT")
+    private String strengthsJson;
+
+    @Column(name = "improvements_json", columnDefinition = "TEXT")
+    private String improvementsJson;
+
     @Column(name = "analyzed_at", nullable = false)
     @Builder.Default
     private LocalDateTime analyzedAt = LocalDateTime.now();

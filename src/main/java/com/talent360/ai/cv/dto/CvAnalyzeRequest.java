@@ -14,4 +14,6 @@ public class CvAnalyzeRequest {
 
     @NotNull(message = "Candidate document ID is required")
     private Long candidateDocumentId;
+
+    private Boolean forceReanalyze;
 }

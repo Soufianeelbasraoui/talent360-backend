@@ -41,7 +41,7 @@ public class AiController {
             @AuthenticationPrincipal UserDetails userDetails,
             @Valid @RequestBody CvAnalyzeRequest request
     ) {
-        return ResponseEntity.ok(cvAnalysisService.analyzeCv(request.getCandidateDocumentId(), userDetails.getUsername()));
+        return ResponseEntity.ok(cvAnalysisService.analyzeCv(request.getCandidateDocumentId(), userDetails.getUsername(), request.getForceReanalyze()));
     }
 
     @Operation(summary = "Match jobs for candidate", description = "Candidate only - returns ranked job offers with explanation breakdown")
